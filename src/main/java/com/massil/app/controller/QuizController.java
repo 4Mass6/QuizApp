@@ -1,18 +1,12 @@
 package com.massil.app.controller;
 
-import com.massil.app.model.Player;
-import com.massil.app.model.Question;
-import com.massil.app.model.Score;
-import com.massil.app.service.PlayerService;
-import com.massil.app.service.QuestionService;
-import com.massil.app.service.ScoreService;
-import jakarta.servlet.http.HttpSession;
+import com.massil.app.model.*;
+import com.massil.app.service.*;
+import com.massil.app.repository.PartieRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-
+import org.springframework.web.bind.annotation.*;
+import jakarta.servlet.http.HttpSession;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,104 +16,118 @@ public class QuizController {
     private final QuestionService questionService;
     private final PlayerService playerService;
     private final ScoreService scoreService;
+    private final PartieRepository partieRepository;
 
-    public QuizController(QuestionService questionService, PlayerService playerService, ScoreService scoreService) {
+    public QuizController(QuestionService questionService,
+                          PlayerService playerService,
+                          ScoreService scoreService,
+                          PartieRepository partieRepository) {
         this.questionService = questionService;
         this.playerService = playerService;
         this.scoreService = scoreService;
+        this.partieRepository = partieRepository;
     }
 
     @GetMapping("/jeu")
     public String demarrerJeu(@RequestParam(required = false) Long playerId,
-                              HttpSession session, Model model) {
+                              HttpSession session) {
         if (playerId != null) {
             session.setAttribute("playerId", playerId);
         } else {
             playerId = (Long) session.getAttribute("playerId");
         }
-
         if (playerId == null) return "redirect:/";
 
-        Long finalPlayerId = playerId;
-        Player player = playerService.getClassement().stream()
-                .filter(p -> p.getId().equals(finalPlayerId))
-                .findFirst()
-                .orElseThrow();
-
         List<Question> questions = questionService.getQuestionsMelangees(10);
-        session.setAttribute("questions", questions);
-        session.setAttribute("index", 0);
-        session.setAttribute("bonnesReponses", 0);
-        session.setAttribute("points", 0);
-        session.setAttribute("reponsesJoueur", new ArrayList<String>());
 
+        Partie partie = new Partie();
+        partie.setPlayerId(playerId);
+        partie.setIndex(0);
+        partie.setBonnesReponses(0);
+        partie.setPoints(0);
+        partie.setQuestionIds(questions.stream().map(Question::getId).toList());
+        partie.setReponsesJoueur(new ArrayList<>());
+        partieRepository.save(partie);
+
+        session.setAttribute("partieId", partie.getId());
         return "redirect:/question";
     }
 
     @GetMapping("/question")
     public String afficherQuestion(HttpSession session, Model model) {
-        List<Question> questions = (List<Question>) session.getAttribute("questions");
-        int index = (int) session.getAttribute("index");
+        Long partieId = (Long) session.getAttribute("partieId");
+        if (partieId == null) return "redirect:/";
 
-        if(questions == null || index >= questions.size()) {
+        Partie partie = partieRepository.findById(partieId).orElse(null);
+        if (partie == null || partie.getIndex() >= partie.getQuestionIds().size()) {
             return "redirect:/resultat";
         }
 
-        model.addAttribute("question", questions.get(index));
-        model.addAttribute("numero", index + 1);
-        model.addAttribute("total", questions.size());
+        Long questionId = partie.getQuestionIds().get(partie.getIndex());
+        Question question = questionService.getTouteslesQuestions().stream()
+                .filter(q -> q.getId().equals(questionId))
+                .findFirst().orElseThrow();
+
+        model.addAttribute("question", question);
+        model.addAttribute("numero", partie.getIndex() + 1);
+        model.addAttribute("total", partie.getQuestionIds().size());
         return "question";
     }
 
     @PostMapping("/repondre")
     public String repondre(@RequestParam String reponse, HttpSession session) {
-        List<Question> questions = (List<Question>) session.getAttribute("questions");
-        int index = (int) session.getAttribute("index");
-        int bonnesReponses = (int) session.getAttribute("bonnesReponses");
-        int points = (int) session.getAttribute("points");
-        List<String> reponsesJoueur = (List<String>) session.getAttribute("reponsesJoueur");
+        Long partieId = (Long) session.getAttribute("partieId");
+        if (partieId == null) return "redirect:/";
 
-        Question question = questions.get(index);
-        reponsesJoueur.add(reponse);
+        Partie partie = partieRepository.findById(partieId).orElseThrow();
+        Long questionId = partie.getQuestionIds().get(partie.getIndex());
+        Question question = questionService.getTouteslesQuestions().stream()
+                .filter(q -> q.getId().equals(questionId))
+                .findFirst().orElseThrow();
+
+        List<String> reponses = new ArrayList<>(partie.getReponsesJoueur());
+        reponses.add(reponse);
+        partie.setReponsesJoueur(reponses);
 
         if (reponse.equals(question.getBonneReponse())) {
-            bonnesReponses++;
-            points += scoreService.calculerPointsQuestion(question.getDifficulte());
-            session.setAttribute("bonnesReponses", bonnesReponses);
-            session.setAttribute("points", points);
+            partie.setBonnesReponses(partie.getBonnesReponses() + 1);
+            partie.setPoints(partie.getPoints() + scoreService.calculerPointsQuestion(question.getDifficulte()));
         }
 
-        session.setAttribute("reponsesJoueur", reponsesJoueur);
-        session.setAttribute("index", index + 1);
+        partie.setIndex(partie.getIndex() + 1);
+        partieRepository.save(partie);
         return "redirect:/question";
     }
 
     @GetMapping("/resultat")
     public String afficherResultat(HttpSession session, Model model) {
-        Integer bonnesReponses = (Integer) session.getAttribute("bonnesReponses");
-        Integer points = (Integer) session.getAttribute("points");
-        List<Question> questions = (List<Question>) session.getAttribute("questions");
-        List<String> reponsesJoueur = (List<String>) session.getAttribute("reponsesJoueur");
-        Long playerId = (Long) session.getAttribute("playerId");
+        Long partieId = (Long) session.getAttribute("partieId");
+        if (partieId == null) return "redirect:/";
 
-        if (bonnesReponses == null || questions == null || playerId == null) {
-            return "redirect:/";
-        }
+        Partie partie = partieRepository.findById(partieId).orElse(null);
+        if (partie == null) return "redirect:/";
 
+        Long playerId = partie.getPlayerId();
         Player player = playerService.getClassement().stream()
                 .filter(p -> p.getId().equals(playerId))
-                .findFirst()
-                .orElseThrow();
+                .findFirst().orElseThrow();
 
-        Score score = scoreService.enregistrerScore(player, bonnesReponses, questions.size(), points);
-        player = playerService.mettreAJourStats(player, points);
+        List<Question> questions = partie.getQuestionIds().stream()
+                .map(id -> questionService.getTouteslesQuestions().stream()
+                        .filter(q -> q.getId().equals(id))
+                        .findFirst().orElseThrow())
+                .toList();
+
+        Score score = scoreService.enregistrerScore(player, partie.getBonnesReponses(), questions.size(), partie.getPoints());
+        player = playerService.mettreAJourStats(player, partie.getPoints());
 
         model.addAttribute("score", score);
         model.addAttribute("player", player);
-        model.addAttribute("pointsGagnes", points);
+        model.addAttribute("pointsGagnes", partie.getPoints());
         model.addAttribute("questions", questions);
-        model.addAttribute("reponsesJoueur", reponsesJoueur);
+        model.addAttribute("reponsesJoueur", partie.getReponsesJoueur());
 
+        partieRepository.delete(partie);
         session.invalidate();
         return "resultat";
     }
