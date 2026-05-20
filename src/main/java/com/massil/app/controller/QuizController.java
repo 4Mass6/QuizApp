@@ -30,10 +30,19 @@ public class QuizController {
     }
 
     @GetMapping("/jeu")
-    public String demarrerJeu(HttpSession session, Model model) {
-        Long playerId = (Long) session.getAttribute("playerId");
+    public String demarrerJeu(@RequestParam(required = false) Long playerId,
+                              HttpSession session, Model model) {
+        if (playerId != null) {
+            session.setAttribute("playerId", playerId);
+        } else {
+            playerId = (Long) session.getAttribute("playerId");
+        }
+
+        if (playerId == null) return "redirect:/";
+
+        Long finalPlayerId = playerId;
         Player player = playerService.getClassement().stream()
-                .filter(p -> p.getId().equals(playerId))
+                .filter(p -> p.getId().equals(finalPlayerId))
                 .findFirst()
                 .orElseThrow();
 
@@ -43,7 +52,6 @@ public class QuizController {
         session.setAttribute("bonnesReponses", 0);
         session.setAttribute("points", 0);
         session.setAttribute("reponsesJoueur", new ArrayList<String>());
-        session.setAttribute("playerId", playerId);
 
         return "redirect:/question";
     }

@@ -27,7 +27,7 @@ public class PlayerController {
     public String creerJoueur(@RequestParam String pseudo, HttpSession session) {
         Player player = playerService.trouverOuCreerJoueur(pseudo);
         session.setAttribute("playerId", player.getId());
-        return "redirect:/jeu";
+        return "redirect:/jeu?playerId=" + player.getId();
     }
 
     @GetMapping("/classement")
