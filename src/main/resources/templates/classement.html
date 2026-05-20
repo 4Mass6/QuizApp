@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Classement</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="container">
+  <h1>🏆 Classement</h1>
+  <table>
+    <thead>
+    <tr>
+      <th>#</th>
+      <th>Pseudo</th>
+      <th>Points</th>
+      <th>Parties jouées</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="joueur, stat : ${joueurs}">
+      <td th:text="${stat.index + 1}"></td>
+      <td th:text="${joueur.pseudo}"></td>
+      <td th:text="${joueur.score}"></td>
+      <td th:text="${joueur.partiesJouees}"></td>
+    </tr>
+    </tbody>
+  </table>
+  <a href="/">⬅️ Retour</a>
+</div>
+</body>
+</html>

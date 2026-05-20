@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Résultat</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="container">
+  <h1>🎉 Résultat</h1>
+  <p>Bravo <strong th:text="${player.pseudo}"></strong> !</p>
+  <div class="score">
+    <p>Bonnes réponses : <span th:text="${score.bonnesReponses}"></span> / <span th:text="${score.totalQuestions}"></span></p>
+    <p>Points gagnés : <span th:text="${pointsGagnes}"></span></p>
+    <p>Total de points : <span th:text="${player.score}"></span></p>
+  </div>
+
+  <h2>📋 Récapitulatif</h2>
+  <div class="recap">
+    <div th:each="question, stat : ${questions}" class="recap-question">
+      <p class="question-enonce">
+        <span th:text="${stat.index + 1} + '. ' + ${question.enonce}"></span>
+        <span th:if="${reponsesJoueur[stat.index] == question.bonneReponse}" class="correct">✅</span>
+        <span th:unless="${reponsesJoueur[stat.index] == question.bonneReponse}" class="incorrect">❌</span>
+      </p>
+      <p th:unless="${reponsesJoueur[stat.index] == question.bonneReponse}" class="bonne-reponse">
+        Ta réponse : <span th:text="${
+                        reponsesJoueur[stat.index] == 'A' ? question.reponseA :
+                        reponsesJoueur[stat.index] == 'B' ? question.reponseB :
+                        reponsesJoueur[stat.index] == 'C' ? question.reponseC :
+                        question.reponseD
+                    }"></span>
+        → Bonne réponse : <strong th:text="${
+                        question.bonneReponse == 'A' ? question.reponseA :
+                        question.bonneReponse == 'B' ? question.reponseB :
+                        question.bonneReponse == 'C' ? question.reponseC :
+                        question.reponseD
+                    }"></strong>
+      </p>
+      <p class="difficulte">
+        Difficulté :
+        <span th:if="${question.difficulte == 1}">🟢 Facile (5 pts)</span>
+        <span th:if="${question.difficulte == 2}">🟡 Intermédiaire (10 pts)</span>
+        <span th:if="${question.difficulte == 3}">🔴 Difficile (20 pts)</span>
+      </p>
+    </div>
+  </div>
+
+  <a href="/">🔄 Rejouer</a>
+  <a href="/classement">🏆 Classement</a>
+</div>
+</body>
+</html>

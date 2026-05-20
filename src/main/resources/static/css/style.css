@@ -1,0 +1,88 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f4f8;
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.container {
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    text-align: center;
+    max-width: 600px;
+    width: 100%;
+    margin: 0 auto;
+    box-sizing: border-box;
+}
+
+h1 { margin-bottom: 20px; color: #2d3748; }
+h2 { margin-bottom: 30px; color: #2d3748; font-size: 1.3rem; }
+
+input[type="text"] {
+    padding: 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 1rem;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+button, .reponses button {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    margin: 8px 0;
+    background: #4299e1;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+button:hover { background: #3182ce; }
+
+a {
+    display: inline-block;
+    margin: 10px 8px 0;
+    color: #4299e1;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+a:hover { text-decoration: underline; }
+
+.progression {
+    background: #ebf8ff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    color: #2b6cb0;
+    margin-bottom: 25px;
+    display: inline-block;
+}
+
+.score p { margin: 10px 0; font-size: 1.1rem; }
+.score span { font-weight: bold; color: #4299e1; }
+
+table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+th, td { padding: 12px; border: 1px solid #e2e8f0; }
+th { background: #ebf8ff; color: #2b6cb0; }
+tr:hover { background: #f7fafc; }
+
+.recap { margin-top: 20px; text-align: left; }
+.recap-question { padding: 12px; border-bottom: 1px solid #e2e8f0; }
+.question-enonce { font-weight: bold; margin-bottom: 5px; }
+.bonne-reponse { color: #e53e3e; font-size: 0.95rem; margin: 4px 0; }
+.difficulte { color: #718096; font-size: 0.85rem; margin-top: 4px; }
+.correct { color: green; }
+.incorrect { color: red; }

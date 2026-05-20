@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Question</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+  <div class="container">
+    <div class="progression">
+      Question <span th:text="${numero}"></span> / <span th:text="${total}"></span>
+    </div>
+    <div class="question">
+      <h2 th:text="${question.enonce}"></h2>
+    </div>
+    <div class="reponses">
+      <form action="/repondre" method="post">
+        <button type="submit" name="reponse" value="A" th:text="${question.reponseA}"></button>
+        <button type="submit" name="reponse" value="B" th:text="${question.reponseB}"></button>
+        <button type="submit" name="reponse" value="C" th:text="${question.reponseC}"></button>
+        <button type="submit" name="reponse" value="D" th:text="${question.reponseD}"></button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>
